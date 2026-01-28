@@ -1,17 +1,19 @@
-import esphome.codegen as cg
-import esphome.config_validation as cv
 from esphome import pins
+import esphome.codegen as cg
 from esphome.components import output
-# from esphome.const import CONF_ID, CONF_MIN_POWER, CONF_METHOD, CONF_INTERRUPT_METHOD #Remember const.py
+import esphome.config_validation as cv
 from esphome.const import CONF_ID, CONF_MIN_POWER, CONF_METHOD
 
-# ESPHome removed CONF_INTERRUPT_METHOD — keep compatibility
+# ESPHome removed CONF_INTERRUPT_METHOD in newer versions; keep compatibility
 try:
     from esphome.const import CONF_INTERRUPT_METHOD
 except ImportError:
     CONF_INTERRUPT_METHOD = "interrupt_method"
+from esphome.core import CORE
 
 CODEOWNERS = ["@glmnet"]
+
+CONF_DIAC_DRAIN_PIN = "diac_drain_pin"
 
 ac_dimmer_ns = cg.esphome_ns.namespace("ac_dimmer")
 AcDimmer = ac_dimmer_ns.class_("AcDimmer", output.FloatOutput, cg.Component)
@@ -21,14 +23,6 @@ DIM_METHODS = {
     "LEADING_PULSE": DimMethod.DIM_METHOD_LEADING_PULSE,
     "LEADING": DimMethod.DIM_METHOD_LEADING,
     "TRAILING": DimMethod.DIM_METHOD_TRAILING,
-}
-
-InterruptMethod = ac_dimmer_ns.enum("InterruptMethod")
-INTERRUPT_METHODS = {
-    "RISING": InterruptMethod.INTERRUPT_METHOD_RISING,
-    "FALLING": InterruptMethod.INTERRUPT_METHOD_FALLING,
-    "ANY": InterruptMethod.INTERRUPT_METHOD_ANY,
-    "CHANGE": InterruptMethod.INTERRUPT_METHOD_CHANGE,
 }
 
 CONF_GATE_PIN = "gate_pin"
@@ -44,15 +38,18 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_METHOD, default="leading pulse"): cv.enum(
                 DIM_METHODS, upper=True, space="_"
             ),
-            cv.Optional(CONF_INTERRUPT_METHOD, default="falling"): cv.enum(
-                INTERRUPT_METHODS, upper=True, space="_"
-            ), 
         }
     ).extend(cv.COMPONENT_SCHEMA),
-    cv.only_with_arduino,
 )
 
+
 async def to_code(config):
+    if CORE.is_esp8266:
+        # ac_dimmer uses setTimer1Callback which requires the waveform generator
+        from esphome.components.esp8266.const import require_waveform
+
+        require_waveform()
+
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
 
@@ -67,4 +64,3 @@ async def to_code(config):
     cg.add(var.set_zero_cross_pin(pin))
     cg.add(var.set_init_with_half_cycle(config[CONF_INIT_WITH_HALF_CYCLE]))
     cg.add(var.set_method(config[CONF_METHOD]))
-    cg.add(var.set_interrupt_method(config[CONF_INTERRUPT_METHOD]))
