@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef USE_ARDUINO
+#if defined(USE_ARDUINO) || defined(USE_ESP_IDF)
 
 #include "esphome/core/component.h"
 #include "esphome/core/hal.h"
@@ -19,6 +19,8 @@ struct AcDimmerDataStore {
   uint8_t zero_cross_pin_number;
   /// Output pin to write to
   ISRInternalGPIOPin gate_pin;
+  /// DIAC drain pin (open-drain recommended)
+  ISRInternalGPIOPin diac_drain_pin;
   /// Value of the dimmer - 0 to 65535.
   uint16_t value;
   /// Minimum power for activation
@@ -53,6 +55,7 @@ class AcDimmer : public output::FloatOutput, public Component {
 
   void dump_config() override;
   void set_gate_pin(InternalGPIOPin *gate_pin) { gate_pin_ = gate_pin; }
+  void set_diac_drain_pin(InternalGPIOPin *diac_drain_pin) { diac_drain_pin_ = diac_drain_pin; }
   void set_zero_cross_pin(InternalGPIOPin *zero_cross_pin) { zero_cross_pin_ = zero_cross_pin; }
   void set_init_with_half_cycle(bool init_with_half_cycle) { init_with_half_cycle_ = init_with_half_cycle; }
   void set_method(DimMethod method) { method_ = method; }
@@ -61,8 +64,9 @@ class AcDimmer : public output::FloatOutput, public Component {
  protected:
   void write_state(float state) override;
 
-  InternalGPIOPin *gate_pin_;
-  InternalGPIOPin *zero_cross_pin_;
+  InternalGPIOPin *gate_pin_{nullptr};
+  InternalGPIOPin *diac_drain_pin_{nullptr};
+  InternalGPIOPin *zero_cross_pin_{nullptr};
   AcDimmerDataStore store_;
   bool init_with_half_cycle_;
   DimMethod method_;
@@ -72,4 +76,4 @@ class AcDimmer : public output::FloatOutput, public Component {
 }  // namespace ac_dimmer
 }  // namespace esphome
 
-#endif  // USE_ARDUINO
+#endif  // USE_ARDUINO || USE_ESP_IDF
