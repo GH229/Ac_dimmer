@@ -33,9 +33,10 @@ DIM_METHODS = {
 
 InterruptMethod = ac_dimmer_ns.enum("InterruptMethod")
 INTERRUPT_METHODS = {
-    "FALLING": InterruptMethod.FALLING,
-    "RISING": InterruptMethod.RISING,
-    "ANY": InterruptMethod.ANY,
+    "FALLING": InterruptMethod.INTERRUPT_METHOD_FALLING,
+    "RISING": InterruptMethod.INTERRUPT_METHOD_RISING,
+    "ANY": InterruptMethod.INTERRUPT_METHOD_ANY,
+    "CHANGE": InterruptMethod.INTERRUPT_METHOD_CHANGE,
 }
 
 CONFIG_SCHEMA = cv.All(
