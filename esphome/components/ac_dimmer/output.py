@@ -2,10 +2,9 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import pins
 from esphome.components import output
-# from esphome.const import CONF_ID, CONF_MIN_POWER, CONF_METHOD, CONF_INTERRUPT_METHOD #Remember const.py
 from esphome.const import CONF_ID, CONF_MIN_POWER, CONF_METHOD
 
-# ESPHome removed CONF_INTERRUPT_METHOD — keep compatibility
+# ESPHome removed CONF_INTERRUPT_METHOD in newer versions; keep compatibility
 try:
     from esphome.const import CONF_INTERRUPT_METHOD
 except ImportError:
@@ -49,7 +48,6 @@ CONFIG_SCHEMA = cv.All(
             ), 
         }
     ).extend(cv.COMPONENT_SCHEMA),
-    cv.only_with_arduino,
 )
 
 async def to_code(config):
